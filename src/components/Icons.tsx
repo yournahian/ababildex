@@ -45,7 +45,11 @@ import {
   TokenNEAR,
   TokenFTM,
   TokenBLAST,
+  TokenCRV,
+  TokenQUICK,
+  TokenPNG,
 } from '@web3icons/react'
+import { DEFAULT_TOKEN_LIST } from '../data/tokens'
 
 interface ChainIconProps {
   chain: string | number
@@ -156,6 +160,7 @@ export const TokenIcon: React.FC<TokenIconProps> = ({ symbol, size = 20, classNa
     case 'PYUSD':
       return <TokenPYUSD size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
     case 'USDE':
+    case 'USDB':
       return <TokenUSDE size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
     case 'WSOL':
     case 'SOL':
@@ -193,20 +198,30 @@ export const TokenIcon: React.FC<TokenIconProps> = ({ symbol, size = 20, classNa
     case 'NEAR':
       return <TokenNEAR size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
     case 'FTM':
+    case 'S':
       return <TokenFTM size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
     case 'BLAST':
       return <TokenBLAST size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
+    case 'CRV':
+      return <TokenCRV size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
+    case 'QUICK':
+      return <TokenQUICK size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
+    case 'PNG':
+      return <TokenPNG size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
     case 'NATIVE':
     case 'ARC':
       return <NetworkArc size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
-    default:
+    default: {
+      const meta = DEFAULT_TOKEN_LIST.find((tk) => tk.symbol.toUpperCase() === s)
+      const bg = fallbackColor || meta?.logoColor || '#2775CA'
       return (
         <div
-          className={`shrink-0 rounded-full flex items-center justify-center font-bold text-[10px] text-white ${className}`}
-          style={{ width: size, height: size, background: fallbackColor || 'linear-gradient(135deg, #5FFBF1, #0052FF)' }}
+          className={`shrink-0 rounded-full flex items-center justify-center font-bold text-[9px] text-white shadow-sm uppercase ${className}`}
+          style={{ width: size, height: size, background: bg }}
         >
           {s.slice(0, 3)}
         </div>
       )
+    }
   }
 }

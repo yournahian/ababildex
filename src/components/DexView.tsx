@@ -4,7 +4,7 @@ import { ConnectKitButton } from 'connectkit'
 import { Droplets, TrendingUp, Plus, Search, ExternalLink, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { useClickOutside } from '../hooks/useClickOutside'
-import { Token } from '../data/tokens'
+import { Token, SUPPORTED_CHAINS, getTokensForChain } from '../data/tokens'
 import { ChainIcon, TokenIcon } from './Icons'
 
 interface Pool {
@@ -25,6 +25,11 @@ const DEMO_POOLS: Pool[] = [
   { id: 'p3', token0: 'USDC', token1: 'WBTC', color0: '#2775CA', color1: '#F7931A', tvl: '12.1M', apr: '9.8%', volume24h: '2.1M', chain: 'Base' },
   { id: 'p4', token0: 'EURC', token1: 'USDC', color0: '#1B54B8', color1: '#2775CA', tvl: '2.8M', apr: '15.6%', volume24h: '560K', chain: 'Arbitrum' },
   { id: 'p5', token0: 'DAI', token1: 'USDC', color0: '#F4B731', color1: '#2775CA', tvl: '6.3M', apr: '11.1%', volume24h: '920K', chain: 'Optimism' },
+  { id: 'p6', token0: 'SOL', token1: 'USDC', color0: '#9945FF', color1: '#2775CA', tvl: '18.5M', apr: '24.2%', volume24h: '4.8M', chain: 'Solana' },
+  { id: 'p7', token0: 'POL', token1: 'USDT', color0: '#8247E5', color1: '#26A17B', tvl: '3.6M', apr: '14.8%', volume24h: '710K', chain: 'Polygon' },
+  { id: 'p8', token0: 'AVAX', token1: 'USDC', color0: '#E84142', color1: '#2775CA', tvl: '5.9M', apr: '16.5%', volume24h: '1.1M', chain: 'Avalanche' },
+  { id: 'p9', token0: 'BNB', token1: 'USDT', color0: '#F3BA2F', color1: '#26A17B', tvl: '9.4M', apr: '13.2%', volume24h: '1.9M', chain: 'BNB Chain' },
+  { id: 'p10', token0: 'SUI', token1: 'USDC', color0: '#4DA2FF', color1: '#2775CA', tvl: '4.8M', apr: '28.4%', volume24h: '1.3M', chain: 'Sui' },
 ]
 
 type DexTab = 'pools' | 'tokens'
@@ -80,7 +85,7 @@ export function DexView({ tokens }: DexViewProps) {
       t.name.toLowerCase().includes(search.toLowerCase())
   )
 
-  const chains = ['All', 'Arc', 'Ethereum', 'Base', 'Arbitrum', 'Optimism']
+  const chains = ['All', ...SUPPORTED_CHAINS.map((c) => c.shortName)]
 
   return (
     <div className="max-w-2xl mx-auto px-4 pb-10">

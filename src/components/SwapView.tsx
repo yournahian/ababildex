@@ -4,10 +4,10 @@ import { ConnectKitButton } from 'connectkit'
 import { AppKit, SwapChain } from '@circle-fin/app-kit'
 import { createViemAdapterFromProvider } from '@circle-fin/adapter-viem-v2'
 import type { EIP1193Provider } from 'viem'
-import { ArrowUpDown, ChevronDown, Loader2, CheckCircle2, AlertCircle, Info } from 'lucide-react'
+import { ArrowUpDown, ChevronDown, Loader2, CheckCircle2, AlertCircle, Info, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { useClickOutside } from '../hooks/useClickOutside'
-import { SUPPORTED_CHAINS, SUPPORTED_TOKENS, DEFAULT_TOKEN_LIST, type SupportedToken } from '../data/tokens'
+import { SUPPORTED_CHAINS, getTokensForChain, type Token } from '../data/tokens'
 import { ChainIcon, TokenIcon } from './Icons'
 
 const kit = new AppKit()
@@ -34,8 +34,10 @@ export function SwapView() {
   const { switchChainAsync } = useSwitchChain()
 
   const [fromChain, setFromChain] = useState('Arc_Testnet')
-  const [tokenIn, setTokenIn] = useState<SupportedToken>('USDC')
-  const [tokenOut, setTokenOut] = useState<SupportedToken>('USDT')
+  const [tokenIn, setTokenIn] = useState('USDC')
+  const [tokenOut, setTokenOut] = useState('USDT')
+  const [tokenSearchIn, setTokenSearchIn] = useState('')
+  const [tokenSearchOut, setTokenSearchOut] = useState('')
   const [amountIn, setAmountIn] = useState('')
   const [swapState, setSwapState] = useState<SwapState>('idle')
   const [estimate, setEstimate] = useState<Estimate | null>(null)
@@ -44,6 +46,21 @@ export function SwapView() {
   const [showFromChainPicker, setShowFromChainPicker] = useState(false)
   const [showTokenInPicker, setShowTokenInPicker] = useState(false)
   const [showTokenOutPicker, setShowTokenOutPicker] = useState(false)
+
+  const chainTokens = getTokensForChain(fromChain)
+
+  const handleSelectChain = (cId: string) => {
+    setFromChain(cId)
+    setShowFromChainPicker(false)
+    setEstimate(null)
+    const tokens = getTokensForChain(cId)
+    if (!tokens.some((t) => t.symbol === tokenIn)) {
+      setTokenIn(tokens[0]?.symbol || 'USDC')
+    }
+    if (!tokens.some((t) => t.symbol === tokenOut)) {
+      setTokenOut(tokens[1]?.symbol || tokens[0]?.symbol || 'USDT')
+    }
+  }
 
   const fromChainPickerRef = useClickOutside<HTMLDivElement>(() => setShowFromChainPicker(false), showFromChainPicker)
   const tokenInPickerRef = useClickOutside<HTMLDivElement>(() => setShowTokenInPicker(false), showTokenInPicker)
@@ -182,7 +199,7 @@ export function SwapView() {
                 {SUPPORTED_CHAINS.map((c) => (
                   <button
                     key={c.id}
-                    onClick={() => { setFromChain(c.id); setShowFromChainPicker(false); setEstimate(null) }}
+                    onClick={() => handleSelectChain(c.id)}
                     className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm text-left hover:bg-white/5 transition-colors"
                     style={{ color: 'var(--ink)' }}
                   >
@@ -215,25 +232,42 @@ export function SwapView() {
                 {showTokenInPicker && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowTokenInPicker(false)} />
-                    <div className="absolute z-50 left-0 mt-1 w-52 max-h-64 overflow-y-auto rounded-xl shadow-2xl" style={{ background: '#141414', border: '1px solid var(--border)' }}>
-                      {SUPPORTED_TOKENS.map((t) => {
-                        const meta = DEFAULT_TOKEN_LIST.find((tk) => tk.symbol === t)
-                        return (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => { setTokenIn(t); setShowTokenInPicker(false); setEstimate(null) }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-white/5 transition-colors"
-                            style={{ color: t === tokenIn ? 'var(--accent)' : 'var(--ink)' }}
-                          >
-                            <TokenIcon symbol={t} size={20} />
-                            <div className="flex flex-col text-left">
-                              <span className="font-semibold text-xs leading-none">{t}</span>
-                              {meta?.name && <span className="text-[10px] text-muted opacity-60 leading-tight mt-0.5">{meta.name}</span>}
-                            </div>
-                          </button>
-                        )
-                      })}
+                    <div className="absolute z-50 left-0 mt-1 w-64 max-h-72 overflow-hidden flex flex-col rounded-xl shadow-2xl" style={{ background: '#141414', border: '1px solid var(--border)' }}>
+                      <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
+                        <Search className="size-3.5 opacity-50 shrink-0" />
+                        <input
+                          autoFocus
+                          value={tokenSearchIn}
+                          onChange={(e) => setTokenSearchIn(e.target.value)}
+                          placeholder={`Search ${chainInfo?.name ?? fromChain} tokens...`}
+                          className="w-full bg-transparent text-xs outline-none"
+                          style={{ color: 'var(--ink)' }}
+                        />
+                      </div>
+                      <div className="max-h-60 overflow-y-auto">
+                        {chainTokens
+                          .filter((t) => t.symbol.toLowerCase().includes(tokenSearchIn.toLowerCase()) || t.name.toLowerCase().includes(tokenSearchIn.toLowerCase()))
+                          .map((t) => (
+                            <button
+                              key={t.symbol}
+                              type="button"
+                              onClick={() => { setTokenIn(t.symbol); setShowTokenInPicker(false); setEstimate(null); setTokenSearchIn('') }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-white/5 transition-colors"
+                              style={{ color: t.symbol === tokenIn ? 'var(--accent)' : 'var(--ink)' }}
+                            >
+                              <TokenIcon symbol={t.symbol} size={20} fallbackColor={t.logoColor} />
+                              <div className="flex flex-col text-left">
+                                <span className="font-semibold text-xs leading-none">{t.symbol}</span>
+                                <span className="text-[10px] text-muted opacity-60 leading-tight mt-0.5">{t.name}</span>
+                              </div>
+                              {t.price !== undefined && (
+                                <span className="ml-auto text-xs opacity-60 font-medium tabular-nums">
+                                  ${t.price < 0.01 ? t.price.toFixed(6) : t.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                      </div>
                     </div>
                   </>
                 )}
@@ -285,25 +319,42 @@ export function SwapView() {
                 {showTokenOutPicker && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowTokenOutPicker(false)} />
-                    <div className="absolute z-50 left-0 mt-1 w-52 max-h-64 overflow-y-auto rounded-xl shadow-2xl" style={{ background: '#141414', border: '1px solid var(--border)' }}>
-                      {SUPPORTED_TOKENS.map((t) => {
-                        const meta = DEFAULT_TOKEN_LIST.find((tk) => tk.symbol === t)
-                        return (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => { setTokenOut(t); setShowTokenOutPicker(false); setEstimate(null) }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-white/5 transition-colors"
-                            style={{ color: t === tokenOut ? 'var(--accent)' : 'var(--ink)' }}
-                          >
-                            <TokenIcon symbol={t} size={20} />
-                            <div className="flex flex-col text-left">
-                              <span className="font-semibold text-xs leading-none">{t}</span>
-                              {meta?.name && <span className="text-[10px] text-muted opacity-60 leading-tight mt-0.5">{meta.name}</span>}
-                            </div>
-                          </button>
-                        )
-                      })}
+                    <div className="absolute z-50 left-0 mt-1 w-64 max-h-72 overflow-hidden flex flex-col rounded-xl shadow-2xl" style={{ background: '#141414', border: '1px solid var(--border)' }}>
+                      <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
+                        <Search className="size-3.5 opacity-50 shrink-0" />
+                        <input
+                          autoFocus
+                          value={tokenSearchOut}
+                          onChange={(e) => setTokenSearchOut(e.target.value)}
+                          placeholder={`Search ${chainInfo?.name ?? fromChain} tokens...`}
+                          className="w-full bg-transparent text-xs outline-none"
+                          style={{ color: 'var(--ink)' }}
+                        />
+                      </div>
+                      <div className="max-h-60 overflow-y-auto">
+                        {chainTokens
+                          .filter((t) => t.symbol.toLowerCase().includes(tokenSearchOut.toLowerCase()) || t.name.toLowerCase().includes(tokenSearchOut.toLowerCase()))
+                          .map((t) => (
+                            <button
+                              key={t.symbol}
+                              type="button"
+                              onClick={() => { setTokenOut(t.symbol); setShowTokenOutPicker(false); setEstimate(null); setTokenSearchOut('') }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-white/5 transition-colors"
+                              style={{ color: t.symbol === tokenOut ? 'var(--accent)' : 'var(--ink)' }}
+                            >
+                              <TokenIcon symbol={t.symbol} size={20} fallbackColor={t.logoColor} />
+                              <div className="flex flex-col text-left">
+                                <span className="font-semibold text-xs leading-none">{t.symbol}</span>
+                                <span className="text-[10px] text-muted opacity-60 leading-tight mt-0.5">{t.name}</span>
+                              </div>
+                              {t.price !== undefined && (
+                                <span className="ml-auto text-xs opacity-60 font-medium tabular-nums">
+                                  ${t.price < 0.01 ? t.price.toFixed(6) : t.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                      </div>
                     </div>
                   </>
                 )}

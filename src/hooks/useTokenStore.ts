@@ -6,8 +6,23 @@ const LEGACY_STORAGE_KEY = 'nexusdex_tokens'
 
 function loadTokens(): Token[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as Token[]
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as Token[]
+      if (Array.isArray(parsed) && parsed.length >= DEFAULT_TOKEN_LIST.length) {
+        return parsed
+      }
+      // If cached list is smaller than default, merge
+      const seen = new Set(parsed.map((t) => t.symbol))
+      const merged = [...parsed]
+      for (const def of DEFAULT_TOKEN_LIST) {
+        if (!seen.has(def.symbol)) {
+          merged.push(def)
+          seen.add(def.symbol)
+        }
+      }
+      return merged
+    }
   } catch {
     // ignore
   }
