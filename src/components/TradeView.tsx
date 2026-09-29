@@ -209,6 +209,7 @@ const QUOTE_TOKENS = ['USDC', 'USDT', 'ETH']
 interface TradingPair {
   base: string
   quote: string
+  name?: string
   basePrice: number   // USDC reference price (display only)
   change24h: number
   volume24h: number
@@ -217,30 +218,30 @@ interface TradingPair {
 
 /** All possible pairs regardless of chain */
 const ALL_PAIRS: TradingPair[] = [
-  { base: 'WBTC',   quote: 'USDC', basePrice: 67_420,  change24h:  2.14,  volume24h: 4_200_000, color: '#F7931A' },
-  { base: 'WETH',   quote: 'USDC', basePrice: 3_510,   change24h:  1.38,  volume24h: 2_800_000, color: '#627EEA' },
-  { base: 'WSOL',   quote: 'USDC', basePrice: 172.5,   change24h: -1.02,  volume24h:   940_000, color: '#9945FF' },
-  { base: 'WBNB',   quote: 'USDC', basePrice: 585.0,   change24h:  0.85,  volume24h: 1_120_000, color: '#F3BA2F' },
-  { base: 'WAVAX',  quote: 'USDC', basePrice: 38.4,    change24h:  3.21,  volume24h:   520_000, color: '#E84142' },
-  { base: 'WPOL',   quote: 'USDC', basePrice: 0.94,    change24h:  1.05,  volume24h:   310_000, color: '#8247E5' },
-  { base: 'ARB',    quote: 'USDC', basePrice: 1.12,    change24h: -0.88,  volume24h:   430_000, color: '#28A0F0' },
-  { base: 'OP',     quote: 'USDC', basePrice: 2.07,    change24h:  0.54,  volume24h:   290_000, color: '#FF0420' },
-  { base: 'LINK',   quote: 'USDC', basePrice: 14.8,    change24h:  2.30,  volume24h:   670_000, color: '#2A5ADA' },
-  { base: 'UNI',    quote: 'USDC', basePrice: 9.72,    change24h: -1.40,  volume24h:   340_000, color: '#FF007A' },
-  { base: 'AAVE',   quote: 'USDC', basePrice: 108,     change24h:  4.12,  volume24h:   280_000, color: '#B6509E' },
-  { base: 'USDT',   quote: 'USDC', basePrice: 1.0002,  change24h:  0.01,  volume24h: 5_600_000, color: '#26A17B' },
-  { base: 'EURC',   quote: 'USDC', basePrice: 1.078,   change24h:  0.22,  volume24h:   380_000, color: '#1B54B8' },
-  { base: 'DAI',    quote: 'USDC', basePrice: 0.9998,  change24h: -0.02,  volume24h:   210_000, color: '#F4B731' },
-  { base: 'USDE',   quote: 'USDC', basePrice: 0.9997,  change24h:  0.00,  volume24h:    95_000, color: '#6366f1' },
-  { base: 'PYUSD',  quote: 'USDC', basePrice: 0.9996,  change24h:  0.01,  volume24h:    78_000, color: '#003087' },
-  { base: 'MNT',    quote: 'USDC', basePrice: 0.78,    change24h:  1.45,  volume24h:   150_000, color: '#000000' },
-  { base: 'CELO',   quote: 'USDC', basePrice: 0.65,    change24h: -0.40,  volume24h:    85_000, color: '#35D07F' },
-  { base: 'SEI',    quote: 'USDC', basePrice: 0.42,    change24h:  2.80,  volume24h:   310_000, color: '#9B1C2E' },
-  { base: 'SUI',    quote: 'USDC', basePrice: 1.85,    change24h:  3.10,  volume24h:   890_000, color: '#4DA2FF' },
-  { base: 'APT',    quote: 'USDC', basePrice: 8.90,    change24h: -1.15,  volume24h:   420_000, color: '#2ED8A7' },
-  { base: 'NEAR',   quote: 'USDC', basePrice: 5.20,    change24h:  1.90,  volume24h:   640_000, color: '#000000' },
-  { base: 'FTM',    quote: 'USDC', basePrice: 0.82,    change24h:  2.05,  volume24h:   390_000, color: '#1969FF' },
-  { base: 'NATIVE', quote: 'USDC', basePrice: 1.00,    change24h:  0.00,  volume24h:   120_000, color: '#5FFBF1' },
+  { base: 'WBTC',   quote: 'USDC', name: 'Wrapped Bitcoin', basePrice: 67_420,  change24h:  2.14,  volume24h: 4_200_000, color: '#F7931A' },
+  { base: 'WETH',   quote: 'USDC', name: 'Wrapped Ether',   basePrice: 3_510,   change24h:  1.38,  volume24h: 2_800_000, color: '#627EEA' },
+  { base: 'WSOL',   quote: 'USDC', name: 'Wrapped SOL',     basePrice: 172.5,   change24h: -1.02,  volume24h:   940_000, color: '#9945FF' },
+  { base: 'WBNB',   quote: 'USDC', name: 'Wrapped BNB',     basePrice: 585.0,   change24h:  0.85,  volume24h: 1_120_000, color: '#F3BA2F' },
+  { base: 'WAVAX',  quote: 'USDC', name: 'Wrapped AVAX',    basePrice: 38.4,    change24h:  3.21,  volume24h:   520_000, color: '#E84142' },
+  { base: 'WPOL',   quote: 'USDC', name: 'Wrapped POL',     basePrice: 0.94,    change24h:  1.05,  volume24h:   310_000, color: '#8247E5' },
+  { base: 'ARB',    quote: 'USDC', name: 'Arbitrum',        basePrice: 1.12,    change24h: -0.88,  volume24h:   430_000, color: '#28A0F0' },
+  { base: 'OP',     quote: 'USDC', name: 'Optimism',        basePrice: 2.07,    change24h:  0.54,  volume24h:   290_000, color: '#FF0420' },
+  { base: 'LINK',   quote: 'USDC', name: 'Chainlink',       basePrice: 14.8,    change24h:  2.30,  volume24h:   670_000, color: '#2A5ADA' },
+  { base: 'UNI',    quote: 'USDC', name: 'Uniswap',         basePrice: 9.72,    change24h: -1.40,  volume24h:   340_000, color: '#FF007A' },
+  { base: 'AAVE',   quote: 'USDC', name: 'Aave',            basePrice: 108,     change24h:  4.12,  volume24h:   280_000, color: '#B6509E' },
+  { base: 'USDT',   quote: 'USDC', name: 'Tether USD',      basePrice: 1.0002,  change24h:  0.01,  volume24h: 5_600_000, color: '#26A17B' },
+  { base: 'EURC',   quote: 'USDC', name: 'Euro Coin',       basePrice: 1.078,   change24h:  0.22,  volume24h:   380_000, color: '#1B54B8' },
+  { base: 'DAI',    quote: 'USDC', name: 'Dai Stablecoin',  basePrice: 0.9998,  change24h: -0.02,  volume24h:   210_000, color: '#F4B731' },
+  { base: 'USDE',   quote: 'USDC', name: 'Ethena USDe',     basePrice: 0.9997,  change24h:  0.00,  volume24h:    95_000, color: '#6366f1' },
+  { base: 'PYUSD',  quote: 'USDC', name: 'PayPal USD',      basePrice: 0.9996,  change24h:  0.01,  volume24h:    78_000, color: '#003087' },
+  { base: 'MNT',    quote: 'USDC', name: 'Mantle',          basePrice: 0.78,    change24h:  1.45,  volume24h:   150_000, color: '#000000' },
+  { base: 'CELO',   quote: 'USDC', name: 'Celo',            basePrice: 0.65,    change24h: -0.40,  volume24h:    85_000, color: '#35D07F' },
+  { base: 'SEI',    quote: 'USDC', name: 'Sei Network',     basePrice: 0.42,    change24h:  2.80,  volume24h:   310_000, color: '#9B1C2E' },
+  { base: 'SUI',    quote: 'USDC', name: 'Sui',             basePrice: 1.85,    change24h:  3.10,  volume24h:   890_000, color: '#4DA2FF' },
+  { base: 'APT',    quote: 'USDC', name: 'Aptos',           basePrice: 8.90,    change24h: -1.15,  volume24h:   420_000, color: '#2ED8A7' },
+  { base: 'NEAR',   quote: 'USDC', name: 'Near Protocol',   basePrice: 5.20,    change24h:  1.90,  volume24h:   640_000, color: '#000000' },
+  { base: 'FTM',    quote: 'USDC', name: 'Fantom Token',    basePrice: 0.82,    change24h:  2.05,  volume24h:   390_000, color: '#1969FF' },
+  { base: 'NATIVE', quote: 'USDC', name: 'Arc Native',      basePrice: 1.00,    change24h:  0.00,  volume24h:   120_000, color: '#5FFBF1' },
 ]
 
 /** Pairs available per chain (by base symbol) */
@@ -279,6 +280,7 @@ function pairsForChain(chainId: string): TradingPair[] {
       return {
         base: t.symbol,
         quote: 'USDC',
+        name: t.name,
         basePrice: t.price ?? 1.0,
         change24h: t.change24h ?? change24h,
         volume24h,
@@ -313,64 +315,98 @@ function fmtTime(d: Date): string {
 }
 
 // ── Pair Selector ──────────────────────────────────────────────────────────────
-function PairSelector({ selected, onSelect, pairs }: { selected: TradingPair; onSelect: (p: TradingPair) => void; pairs: TradingPair[] }) {
-  const [open, setOpen] = useState(false)
+function PairSelector({
+  selected,
+  onSelect,
+  pairs,
+  isOpen,
+  onToggle,
+  onClose,
+}: {
+  selected: TradingPair
+  onSelect: (p: TradingPair) => void
+  pairs: TradingPair[]
+  isOpen: boolean
+  onToggle: () => void
+  onClose: () => void
+}) {
   const [search, setSearch] = useState('')
+  const ref = useClickOutside<HTMLDivElement>(onClose, isOpen)
 
   const filtered = pairs.filter(
     (p) =>
       p.base.toLowerCase().includes(search.toLowerCase()) ||
-      p.quote.toLowerCase().includes(search.toLowerCase())
+      p.quote.toLowerCase().includes(search.toLowerCase()) ||
+      (p.name && p.name.toLowerCase().includes(search.toLowerCase()))
   )
 
-  const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open)
+  const baseSymbol = selected?.base || 'ETH'
+  const quoteSymbol = selected?.quote || 'USDC'
 
   return (
-    <div className={`relative ${open ? 'z-50' : 'z-20'}`} ref={ref}>
+    <div className={`relative ${isOpen ? 'z-50' : 'z-20'}`} ref={ref}>
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all hover:bg-white/5"
-        style={{ background: 'var(--surface-muted)', border: '1px solid var(--border)' }}
+        onClick={onToggle}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all hover:bg-white/5 active:scale-95"
+        style={{
+          background: isOpen ? 'rgba(95,251,241,0.1)' : 'var(--surface-muted)',
+          border: `1px solid ${isOpen ? 'var(--accent)' : 'var(--border)'}`,
+        }}
+        title="Select trading pair"
       >
-        <TokenIcon symbol={selected.base} size={20} fallbackColor={selected.color} />
+        <TokenIcon symbol={baseSymbol} size={20} fallbackColor={selected?.color} />
         <span className="display font-bold text-sm" style={{ color: 'var(--ink)' }}>
-          {selected.base}/{selected.quote}
+          {baseSymbol}/{quoteSymbol}
         </span>
-        <ChevronDown className="size-3.5 opacity-60 ml-0.5" style={{ color: 'var(--muted)' }} />
+        <ChevronDown
+          className={`size-3.5 transition-transform duration-200 opacity-60 ml-0.5 ${isOpen ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--muted)' }}
+        />
       </button>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div
-            className="absolute top-full left-0 mt-1.5 w-64 rounded-xl overflow-hidden z-50 shadow-2xl flex flex-col"
-            style={{ background: '#141414', border: '1px solid var(--border)' }}
-          >
-            <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
-              <Search className="size-3.5 opacity-50 shrink-0 text-white" />
-              <input
-                autoFocus
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search pairs..."
-                className="w-full bg-transparent text-xs outline-none text-white"
-              />
-            </div>
-            <div className="max-h-60 overflow-y-auto">
-              {filtered.map((p) => (
+      {isOpen && (
+        <div
+          className="absolute top-full left-[-40px] sm:left-0 mt-1.5 w-64 max-w-[calc(100vw-24px)] rounded-xl overflow-hidden z-50 shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-1 duration-150"
+          style={{ background: '#141414', border: '1px solid var(--border)' }}
+        >
+          <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
+            <Search className="size-3.5 opacity-50 shrink-0 text-white" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search token / coin..."
+              className="w-full bg-transparent text-xs outline-none text-white placeholder:text-gray-500"
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto overscroll-contain">
+            {filtered.length === 0 ? (
+              <div className="p-4 text-center text-xs text-muted opacity-60">No pairs found</div>
+            ) : (
+              filtered.map((p) => (
                 <button
                   key={p.base + p.quote}
                   type="button"
-                  onClick={() => { onSelect(p); setOpen(false); setSearch('') }}
+                  onClick={() => {
+                    onSelect(p)
+                    onClose()
+                    setSearch('')
+                  }}
                   className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-white/5 transition-colors text-left"
-                  style={{ background: selected.base === p.base ? 'rgba(95,251,241,0.08)' : 'transparent' }}
+                  style={{ background: selected?.base === p.base ? 'rgba(95,251,241,0.08)' : 'transparent' }}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0 pr-2">
                     <TokenIcon symbol={p.base} size={18} fallbackColor={p.color} />
-                    <span style={{ color: 'var(--ink)' }} className="font-semibold text-xs">{p.base}/{p.quote}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span style={{ color: 'var(--ink)' }} className="font-semibold text-xs truncate">
+                        {p.base}/{p.quote}
+                      </span>
+                      {p.name && (
+                        <span className="text-[10px] text-muted opacity-60 truncate">{p.name}</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-col text-right">
+                  <div className="flex flex-col text-right shrink-0">
                     <span className="text-xs font-semibold tabular-nums text-white">
                       ${fmt(p.basePrice)}
                     </span>
@@ -382,87 +418,115 @@ function PairSelector({ selected, onSelect, pairs }: { selected: TradingPair; on
                     </span>
                   </div>
                 </button>
-              ))}
-            </div>
+              ))
+            )}
           </div>
-        </>
+        </div>
       )}
     </div>
   )
 }
 
 // ── Chain Selector ─────────────────────────────────────────────────────────────
-function ChainSelector({ selected, onSelect }: { selected: ChainInfo; onSelect: (c: ChainInfo) => void }) {
-  const [open, setOpen] = useState(false)
+function ChainSelector({
+  selected,
+  onSelect,
+  isOpen,
+  onToggle,
+  onClose,
+}: {
+  selected: ChainInfo
+  onSelect: (c: ChainInfo) => void
+  isOpen: boolean
+  onToggle: () => void
+  onClose: () => void
+}) {
   const [search, setSearch] = useState('')
-  const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open)
+  const ref = useClickOutside<HTMLDivElement>(onClose, isOpen)
 
   const filteredChains = SUPPORTED_CHAINS.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.shortName.toLowerCase().includes(search.toLowerCase())
+      c.shortName.toLowerCase().includes(search.toLowerCase()) ||
+      c.id.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
-    <div className={`relative ${open ? 'z-50' : 'z-20'}`} ref={ref}>
+    <div className={`relative ${isOpen ? 'z-50' : 'z-20'}`} ref={ref}>
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:bg-white/5"
-        style={{ background: 'var(--surface-muted)', border: '1px solid var(--border)' }}
+        onClick={onToggle}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:bg-white/5 active:scale-95"
+        style={{
+          background: isOpen ? 'rgba(95,251,241,0.1)' : 'var(--surface-muted)',
+          border: `1px solid ${isOpen ? 'var(--accent)' : 'var(--border)'}`,
+        }}
         title="Select chain"
       >
-        <ChainIcon chain={selected.id} size={16} />
-        <span style={{ color: 'var(--ink)' }}>{selected.shortName}</span>
-        <ChevronDown className="size-3 opacity-60 ml-0.5" style={{ color: 'var(--subtle)' }} />
+        <ChainIcon chain={selected?.id || 'Ethereum'} size={16} />
+        <span style={{ color: 'var(--ink)' }}>{selected?.shortName || 'ETH'}</span>
+        <ChevronDown
+          className={`size-3 transition-transform duration-200 opacity-60 ml-0.5 ${isOpen ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--subtle)' }}
+        />
       </button>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div
-            className="absolute top-full left-0 mt-1.5 w-60 rounded-xl overflow-hidden z-50 shadow-2xl flex flex-col"
-            style={{ background: '#141414', border: '1px solid var(--border)' }}
-          >
-            <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
-              <Search className="size-3.5 opacity-50 shrink-0 text-white" />
-              <input
-                autoFocus
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search chains..."
-                className="w-full bg-transparent text-xs outline-none text-white"
-              />
-            </div>
-            <div className="max-h-64 overflow-y-auto">
-              {filteredChains.map((c) => (
+      {isOpen && (
+        <div
+          className="absolute top-full left-0 mt-1.5 w-60 max-w-[calc(100vw-24px)] rounded-xl overflow-hidden z-50 shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-1 duration-150"
+          style={{ background: '#141414', border: '1px solid var(--border)' }}
+        >
+          <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
+            <Search className="size-3.5 opacity-50 shrink-0 text-white" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search chains..."
+              className="w-full bg-transparent text-xs outline-none text-white placeholder:text-gray-500"
+            />
+          </div>
+          <div className="max-h-64 overflow-y-auto overscroll-contain">
+            {filteredChains.length === 0 ? (
+              <div className="p-4 text-center text-xs text-muted opacity-60">No chains found</div>
+            ) : (
+              filteredChains.map((c) => (
                 <button
                   key={c.id}
                   type="button"
-                  onClick={() => { onSelect(c); setOpen(false); setSearch('') }}
+                  onClick={() => {
+                    onSelect(c)
+                    onClose()
+                    setSearch('')
+                  }}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs hover:bg-white/5 transition-colors text-left"
-                  style={{ background: selected.id === c.id ? 'rgba(95,251,241,0.08)' : 'transparent' }}
+                  style={{ background: selected?.id === c.id ? 'rgba(95,251,241,0.08)' : 'transparent' }}
                 >
                   <ChainIcon chain={c.id} size={18} />
                   <div className="flex flex-col">
-                    <span style={{ color: selected.id === c.id ? 'var(--accent)' : 'var(--ink)' }} className="font-semibold">
+                    <span
+                      style={{ color: selected?.id === c.id ? 'var(--accent)' : 'var(--ink)' }}
+                      className="font-semibold"
+                    >
                       {c.name}
                     </span>
                     <span className="text-[10px] text-muted opacity-60">{c.shortName}</span>
                   </div>
                   {c.isTestnet && (
-                    <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(95,251,241,0.12)', color: 'var(--accent)' }}>
+                    <span
+                      className="ml-auto text-[9px] px-1.5 py-0.5 rounded font-medium"
+                      style={{ background: 'rgba(95,251,241,0.12)', color: 'var(--accent)' }}
+                    >
                       testnet
                     </span>
                   )}
-                  {selected.id === c.id && (
+                  {selected?.id === c.id && (
                     <span className="ml-auto size-1.5 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
                   )}
                 </button>
-              ))}
-            </div>
+              ))
+            )}
           </div>
-        </>
+        </div>
       )}
     </div>
   )
@@ -1018,6 +1082,7 @@ export function TradeView() {
   const [livePrice, setLivePrice] = useState(initialPairs[0].basePrice)
   const [rightPanel, setRightPanel] = useState<'book' | 'trades'>('book')
   const [mobileTab, setMobileTab] = useState<'chart' | 'book' | 'order'>('chart')
+  const [activeMenu, setActiveMenu] = useState<'chain' | 'pair' | null>(null)
 
   const chainPairs = pairsForChain(chain.id)
 
@@ -1027,11 +1092,13 @@ export function TradeView() {
     const first = pairs[0]
     setPairState(first)
     setLivePrice(first.basePrice)
+    setActiveMenu(null)
   }, [])
 
   const setPair = useCallback((p: TradingPair) => {
     setPairState(p)
     setLivePrice(p.basePrice)
+    setActiveMenu(null)
   }, [])
 
   const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '1h', '4h', '1d', '1w']
@@ -1042,9 +1109,22 @@ export function TradeView() {
       <div className="flex items-center justify-between px-3 py-2 shrink-0 relative z-30 overflow-visible" style={{ borderBottom: '1px solid var(--border)', background: 'rgba(10,22,40,0.85)' }}>
         {/* Selectors - strictly overflow-visible so dropdowns float over everything */}
         <div className="flex items-center gap-2 relative z-40 overflow-visible shrink-0">
-          <ChainSelector selected={chain} onSelect={setChain} />
+          <ChainSelector
+            selected={chain}
+            onSelect={setChain}
+            isOpen={activeMenu === 'chain'}
+            onToggle={() => setActiveMenu((m) => (m === 'chain' ? null : 'chain'))}
+            onClose={() => setActiveMenu(null)}
+          />
           <div className="h-4 w-px shrink-0" style={{ background: 'var(--border)' }} />
-          <PairSelector selected={pair} onSelect={setPair} pairs={chainPairs} />
+          <PairSelector
+            selected={pair}
+            onSelect={setPair}
+            pairs={chainPairs}
+            isOpen={activeMenu === 'pair'}
+            onToggle={() => setActiveMenu((m) => (m === 'pair' ? null : 'pair'))}
+            onClose={() => setActiveMenu(null)}
+          />
         </div>
 
         {/* Timeframe & Chart tools with horizontal scroll if needed */}
