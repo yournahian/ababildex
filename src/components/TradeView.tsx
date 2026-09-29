@@ -24,8 +24,9 @@ import {
   ArrowUpDown,
   Settings,
   Globe,
+  Search,
 } from 'lucide-react'
-import { DEFAULT_TOKEN_LIST, SUPPORTED_CHAINS, type ChainInfo } from '../data/tokens'
+import { DEFAULT_TOKEN_LIST, SUPPORTED_CHAINS, getTokensForChain, type ChainInfo } from '../data/tokens'
 import { TokenIcon, ChainIcon } from './Icons'
 import { useClickOutside } from '../hooks/useClickOutside'
 
@@ -267,6 +268,24 @@ const CHAIN_PAIRS: Record<string, string[]> = {
 }
 
 function pairsForChain(chainId: string): TradingPair[] {
+  const chainTokens = getTokensForChain(chainId)
+  if (chainTokens && chainTokens.length > 0) {
+    const nonUsdc = chainTokens.filter((t) => t.symbol !== 'USDC')
+    const list = nonUsdc.length > 0 ? nonUsdc : chainTokens
+    return list.map((t) => {
+      const charSum = t.symbol.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+      const change24h = +(((charSum % 21) - 9) * 0.42).toFixed(2)
+      const volume24h = Math.round((charSum % 40 + 10) * 95_000)
+      return {
+        base: t.symbol,
+        quote: 'USDC',
+        basePrice: t.price ?? 1.0,
+        change24h: t.change24h ?? change24h,
+        volume24h,
+        color: t.logoColor || '#5FFBF1',
+      }
+    })
+  }
   const bases = CHAIN_PAIRS[chainId] ?? CHAIN_PAIRS['Ethereum']
   const matched = ALL_PAIRS.filter((p) => bases.includes(p.base))
   return matched.length > 0 ? matched : [ALL_PAIRS[0]]
@@ -307,54 +326,61 @@ function PairSelector({ selected, onSelect, pairs }: { selected: TradingPair; on
   const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open)
 
   return (
-    <div className="relative" ref={ref}>
+    <div className={`relative ${open ? 'z-50' : 'z-20'}`} ref={ref}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all hover:bg-white/5"
         style={{ background: 'var(--surface-muted)', border: '1px solid var(--border)' }}
       >
         <TokenIcon symbol={selected.base} size={20} fallbackColor={selected.color} />
         <span className="display font-bold text-sm" style={{ color: 'var(--ink)' }}>
           {selected.base}/{selected.quote}
         </span>
-        <ChevronDown className="size-3.5" style={{ color: 'var(--muted)' }} />
+        <ChevronDown className="size-3.5 opacity-60 ml-0.5" style={{ color: 'var(--muted)' }} />
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute top-full left-0 mt-1 w-64 rounded-xl overflow-hidden z-50 shadow-2xl"
+            className="absolute top-full left-0 mt-1.5 w-64 rounded-xl overflow-hidden z-50 shadow-2xl flex flex-col"
             style={{ background: '#141414', border: '1px solid var(--border)' }}
           >
-            <div className="p-2">
+            <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
+              <Search className="size-3.5 opacity-50 shrink-0 text-white" />
               <input
                 autoFocus
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search pairs..."
-                className="w-full px-3 py-1.5 rounded-lg text-sm outline-none"
-                style={{ background: 'var(--surface-muted)', border: '1px solid var(--border)', color: 'var(--ink)' }}
+                className="w-full bg-transparent text-xs outline-none text-white"
               />
             </div>
             <div className="max-h-60 overflow-y-auto">
               {filtered.map((p) => (
                 <button
                   key={p.base + p.quote}
-                  onClick={() => { onSelect(p); setOpen(false) }}
+                  type="button"
+                  onClick={() => { onSelect(p); setOpen(false); setSearch('') }}
                   className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-white/5 transition-colors text-left"
                   style={{ background: selected.base === p.base ? 'rgba(95,251,241,0.08)' : 'transparent' }}
                 >
                   <div className="flex items-center gap-2">
                     <TokenIcon symbol={p.base} size={18} fallbackColor={p.color} />
-                    <span style={{ color: 'var(--ink)' }}>{p.base}/{p.quote}</span>
+                    <span style={{ color: 'var(--ink)' }} className="font-semibold text-xs">{p.base}/{p.quote}</span>
                   </div>
-                  <span
-                    className="text-xs font-medium"
-                    style={{ color: p.change24h >= 0 ? 'var(--success)' : 'var(--danger)' }}
-                  >
-                    {p.change24h >= 0 ? '+' : ''}{p.change24h.toFixed(2)}%
-                  </span>
+                  <div className="flex flex-col text-right">
+                    <span className="text-xs font-semibold tabular-nums text-white">
+                      ${fmt(p.basePrice)}
+                    </span>
+                    <span
+                      className="text-[10px] font-medium tabular-nums"
+                      style={{ color: p.change24h >= 0 ? 'var(--success)' : 'var(--danger)' }}
+                    >
+                      {p.change24h >= 0 ? '+' : ''}{p.change24h.toFixed(2)}%
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -368,46 +394,64 @@ function PairSelector({ selected, onSelect, pairs }: { selected: TradingPair; on
 // ── Chain Selector ─────────────────────────────────────────────────────────────
 function ChainSelector({ selected, onSelect }: { selected: ChainInfo; onSelect: (c: ChainInfo) => void }) {
   const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const ref = useClickOutside<HTMLDivElement>(() => setOpen(false), open)
 
+  const filteredChains = SUPPORTED_CHAINS.filter(
+    (c) =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.shortName.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
-    <div className="relative" ref={ref}>
+    <div className={`relative ${open ? 'z-50' : 'z-20'}`} ref={ref}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:bg-white/5"
         style={{ background: 'var(--surface-muted)', border: '1px solid var(--border)' }}
         title="Select chain"
       >
-        <ChainIcon chain={selected.name} size={16} />
+        <ChainIcon chain={selected.id} size={16} />
         <span style={{ color: 'var(--ink)' }}>{selected.shortName}</span>
-        <ChevronDown className="size-3" style={{ color: 'var(--subtle)' }} />
+        <ChevronDown className="size-3 opacity-60 ml-0.5" style={{ color: 'var(--subtle)' }} />
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute top-full left-0 mt-1 w-56 rounded-xl overflow-hidden z-50 shadow-2xl"
+            className="absolute top-full left-0 mt-1.5 w-60 rounded-xl overflow-hidden z-50 shadow-2xl flex flex-col"
             style={{ background: '#141414', border: '1px solid var(--border)' }}
           >
-            <div className="px-3 py-2 flex items-center gap-1.5" style={{ borderBottom: '1px solid var(--border)' }}>
-              <Globe className="size-3.5" style={{ color: 'var(--muted)' }} />
-              <span className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>Select Network</span>
+            <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
+              <Search className="size-3.5 opacity-50 shrink-0 text-white" />
+              <input
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search chains..."
+                className="w-full bg-transparent text-xs outline-none text-white"
+              />
             </div>
             <div className="max-h-64 overflow-y-auto">
-              {SUPPORTED_CHAINS.map((c) => (
+              {filteredChains.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => { onSelect(c); setOpen(false) }}
+                  type="button"
+                  onClick={() => { onSelect(c); setOpen(false); setSearch('') }}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs hover:bg-white/5 transition-colors text-left"
                   style={{ background: selected.id === c.id ? 'rgba(95,251,241,0.08)' : 'transparent' }}
                 >
-                  <ChainIcon chain={c.name} size={18} />
-                  <span style={{ color: selected.id === c.id ? 'var(--accent)' : 'var(--ink)' }} className="font-semibold">
-                    {c.name}
-                  </span>
+                  <ChainIcon chain={c.id} size={18} />
+                  <div className="flex flex-col">
+                    <span style={{ color: selected.id === c.id ? 'var(--accent)' : 'var(--ink)' }} className="font-semibold">
+                      {c.name}
+                    </span>
+                    <span className="text-[10px] text-muted opacity-60">{c.shortName}</span>
+                  </div>
                   {c.isTestnet && (
-                    <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(95,251,241,0.12)', color: 'var(--accent)' }}>
+                    <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(95,251,241,0.12)', color: 'var(--accent)' }}>
                       testnet
                     </span>
                   )}
@@ -995,41 +1039,47 @@ export function TradeView() {
   return (
     <div className="flex flex-col h-full min-h-[calc(100dvh-120px)] sm:h-[calc(100dvh-56px)]" style={{ background: 'var(--bg)' }}>
       {/* Top toolbar */}
-      <div className="flex items-center gap-2 px-3 py-2 shrink-0 overflow-x-auto no-scrollbar" style={{ borderBottom: '1px solid var(--border)', background: 'rgba(10,22,40,0.7)' }}>
-        {/* Chain selector first */}
-        <ChainSelector selected={chain} onSelect={setChain} />
-        <div className="h-4 w-px shrink-0" style={{ background: 'var(--border)' }} />
-        <PairSelector selected={pair} onSelect={setPair} pairs={chainPairs} />
+      <div className="flex items-center justify-between px-3 py-2 shrink-0 relative z-30 overflow-visible" style={{ borderBottom: '1px solid var(--border)', background: 'rgba(10,22,40,0.85)' }}>
+        {/* Selectors - strictly overflow-visible so dropdowns float over everything */}
+        <div className="flex items-center gap-2 relative z-40 overflow-visible shrink-0">
+          <ChainSelector selected={chain} onSelect={setChain} />
+          <div className="h-4 w-px shrink-0" style={{ background: 'var(--border)' }} />
+          <PairSelector selected={pair} onSelect={setPair} pairs={chainPairs} />
+        </div>
 
-        {/* Timeframe */}
-        <div className="flex items-center gap-0.5 ml-2 shrink-0">
-          {TIMEFRAMES.map((tf) => (
-            <button
-              key={tf}
-              onClick={() => setTimeframe(tf)}
-              className="px-2 py-1 rounded text-xs font-medium transition-colors shrink-0"
-              style={{ background: timeframe === tf ? 'rgba(172,198,233,0.14)' : 'transparent', color: timeframe === tf ? 'var(--accent)' : 'var(--subtle)' }}
-            >
-              {tf}
+        {/* Timeframe & Chart tools with horizontal scroll if needed */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar ml-2">
+          {/* Timeframe */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            {TIMEFRAMES.map((tf) => (
+              <button
+                key={tf}
+                type="button"
+                onClick={() => setTimeframe(tf)}
+                className="px-2 py-1 rounded text-xs font-medium transition-colors shrink-0"
+                style={{ background: timeframe === tf ? 'rgba(172,198,233,0.14)' : 'transparent', color: timeframe === tf ? 'var(--accent)' : 'var(--subtle)' }}
+              >
+                {tf}
+              </button>
+            ))}
+          </div>
+
+          {/* Chart type */}
+          <div className="flex items-center gap-0.5 ml-1 shrink-0">
+            <button type="button" onClick={() => setChartType('candlestick')} title="Candlestick" className="p-1.5 rounded transition-colors" style={{ background: chartType === 'candlestick' ? 'rgba(172,198,233,0.14)' : 'transparent', color: chartType === 'candlestick' ? 'var(--accent)' : 'var(--subtle)' }}>
+              <BarChart2 className="size-3.5" />
             </button>
-          ))}
+            <button type="button" onClick={() => setChartType('line')} title="Line" className="p-1.5 rounded transition-colors" style={{ background: chartType === 'line' ? 'rgba(172,198,233,0.14)' : 'transparent', color: chartType === 'line' ? 'var(--accent)' : 'var(--subtle)' }}>
+              <Activity className="size-3.5" />
+            </button>
+            <button type="button" onClick={() => setChartType('area')} title="Area" className="p-1.5 rounded transition-colors" style={{ background: chartType === 'area' ? 'rgba(172,198,233,0.14)' : 'transparent', color: chartType === 'area' ? 'var(--accent)' : 'var(--subtle)' }}>
+              <Layers className="size-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Chart type */}
-        <div className="flex items-center gap-0.5 ml-1 shrink-0">
-          <button onClick={() => setChartType('candlestick')} title="Candlestick" className="p-1.5 rounded transition-colors" style={{ background: chartType === 'candlestick' ? 'rgba(172,198,233,0.14)' : 'transparent', color: chartType === 'candlestick' ? 'var(--accent)' : 'var(--subtle)' }}>
-            <BarChart2 className="size-3.5" />
-          </button>
-          <button onClick={() => setChartType('line')} title="Line" className="p-1.5 rounded transition-colors" style={{ background: chartType === 'line' ? 'rgba(172,198,233,0.14)' : 'transparent', color: chartType === 'line' ? 'var(--accent)' : 'var(--subtle)' }}>
-            <Activity className="size-3.5" />
-          </button>
-          <button onClick={() => setChartType('area')} title="Area" className="p-1.5 rounded transition-colors" style={{ background: chartType === 'area' ? 'rgba(172,198,233,0.14)' : 'transparent', color: chartType === 'area' ? 'var(--accent)' : 'var(--subtle)' }}>
-            <Layers className="size-3.5" />
-          </button>
-        </div>
-
-        <div className="ml-auto flex items-center gap-1 shrink-0">
-          <button className="p-1.5 rounded transition-colors" style={{ color: 'var(--subtle)' }} title="Settings">
+        <div className="ml-auto flex items-center gap-1 shrink-0 hidden sm:flex">
+          <button type="button" className="p-1.5 rounded transition-colors" style={{ color: 'var(--subtle)' }} title="Settings">
             <Settings className="size-3.5" />
           </button>
         </div>
