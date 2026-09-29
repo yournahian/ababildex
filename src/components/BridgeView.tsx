@@ -344,13 +344,15 @@ export function BridgeView() {
       </div>
 
       {/* Main Bridge Card */}
-      <div className="rounded-3xl p-4 sm:p-6 glass-card space-y-4 border border-[var(--border)] shadow-2xl relative overflow-hidden">
-        {/* Glow ambient background */}
-        <div className="absolute -top-24 -right-24 size-64 rounded-full bg-[#5FFBF1]/5 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 size-64 rounded-full bg-[#627EEA]/5 blur-3xl pointer-events-none" />
+      <div className="rounded-3xl p-4 sm:p-6 glass-card space-y-4 border border-[var(--border)] shadow-2xl relative">
+        {/* Glow ambient background bounded to card shape */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl">
+          <div className="absolute -top-24 -right-24 size-64 rounded-full bg-[#5FFBF1]/5 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 size-64 rounded-full bg-[#627EEA]/5 blur-3xl pointer-events-none" />
+        </div>
 
         {/* FROM SECTION */}
-        <div className="rounded-2xl p-4 glass-inner border border-[var(--border)] relative space-y-3">
+        <div className={`rounded-2xl p-4 glass-inner border border-[var(--border)] relative space-y-3 ${showFromChainPicker || showFromTokenPicker ? 'z-30' : 'z-10'}`}>
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold uppercase tracking-wider text-muted opacity-80">Source (Transfer From)</span>
             <span className="text-muted opacity-70">
@@ -360,7 +362,7 @@ export function BridgeView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {/* From Chain Picker */}
-            <div className="relative" ref={fromChainPickerRef}>
+            <div className={`relative ${showFromChainPicker ? 'z-40' : 'z-10'}`} ref={fromChainPickerRef}>
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted opacity-60 mb-1 block">Network</label>
               <button
                 type="button"
@@ -381,7 +383,7 @@ export function BridgeView() {
               {showFromChainPicker && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowFromChainPicker(false)} />
-                  <div className="absolute z-50 left-0 mt-1 w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
+                  <div className="absolute z-50 left-0 mt-1 w-full sm:w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
                     <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
                       <Search className="size-3.5 opacity-50 shrink-0" />
                       <input
@@ -420,7 +422,7 @@ export function BridgeView() {
             </div>
 
             {/* From Token Picker */}
-            <div className="relative" ref={fromTokenPickerRef}>
+            <div className={`relative ${showFromTokenPicker ? 'z-40' : 'z-10'}`} ref={fromTokenPickerRef}>
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted opacity-60 mb-1 block">Token / Coin</label>
               <button
                 type="button"
@@ -442,7 +444,7 @@ export function BridgeView() {
               {showFromTokenPicker && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowFromTokenPicker(false)} />
-                  <div className="absolute z-50 left-0 mt-1 w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
+                  <div className="absolute z-50 left-0 sm:left-auto sm:right-0 mt-1 w-full sm:w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
                     <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
                       <Search className="size-3.5 opacity-50 shrink-0" />
                       <input
@@ -516,7 +518,7 @@ export function BridgeView() {
         </div>
 
         {/* FLIP ROUTE BUTTON */}
-        <div className="flex justify-center -my-2 relative z-10">
+        <div className="flex justify-center -my-2 relative z-0">
           <button
             type="button"
             onClick={handleFlipRoute}
@@ -529,7 +531,7 @@ export function BridgeView() {
         </div>
 
         {/* TO SECTION */}
-        <div className="rounded-2xl p-4 glass-inner border border-[var(--border)] relative space-y-3">
+        <div className={`rounded-2xl p-4 glass-inner border border-[var(--border)] relative space-y-3 ${showToChainPicker || showToTokenPicker ? 'z-30' : 'z-0'}`}>
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold uppercase tracking-wider text-muted opacity-80">Destination (Receive On)</span>
             <span className="text-muted opacity-70">Estimated Arrival: <strong className="text-white">{isCctpRoute ? '~15-20 sec' : '~1-2 min'}</strong></span>
@@ -537,7 +539,7 @@ export function BridgeView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {/* To Chain Picker */}
-            <div className="relative" ref={toChainPickerRef}>
+            <div className={`relative ${showToChainPicker ? 'z-40' : 'z-10'}`} ref={toChainPickerRef}>
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted opacity-60 mb-1 block">Network</label>
               <button
                 type="button"
@@ -558,7 +560,7 @@ export function BridgeView() {
               {showToChainPicker && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowToChainPicker(false)} />
-                  <div className="absolute z-50 left-0 mt-1 w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
+                  <div className="absolute z-50 left-0 mt-1 w-full sm:w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
                     <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
                       <Search className="size-3.5 opacity-50 shrink-0" />
                       <input
@@ -598,7 +600,7 @@ export function BridgeView() {
             </div>
 
             {/* To Token Picker */}
-            <div className="relative" ref={toTokenPickerRef}>
+            <div className={`relative ${showToTokenPicker ? 'z-40' : 'z-10'}`} ref={toTokenPickerRef}>
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted opacity-60 mb-1 block">Receive Token</label>
               <button
                 type="button"
@@ -620,7 +622,7 @@ export function BridgeView() {
               {showToTokenPicker && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowToTokenPicker(false)} />
-                  <div className="absolute z-50 left-0 mt-1 w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
+                  <div className="absolute z-50 left-0 sm:left-auto sm:right-0 mt-1 w-full sm:w-64 max-h-72 flex flex-col rounded-xl shadow-2xl overflow-hidden" style={{ background: '#141414', border: '1px solid var(--border)' }}>
                     <div className="p-2 border-b border-[var(--border)] flex items-center gap-2">
                       <Search className="size-3.5 opacity-50 shrink-0" />
                       <input

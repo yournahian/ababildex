@@ -137,7 +137,7 @@ export function DexView({ tokens }: DexViewProps) {
 
         {/* Chain filter dropdown */}
         {tab === 'pools' && (
-          <div className="relative" ref={chainFilterRef}>
+          <div className={`relative ${showChainFilter ? 'z-40' : 'z-10'}`} ref={chainFilterRef}>
             <button
               onClick={() => setShowChainFilter(!showChainFilter)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
@@ -149,9 +149,9 @@ export function DexView({ tokens }: DexViewProps) {
             </button>
             {showChainFilter && (
               <>
-                <div className="fixed inset-0 z-20" onClick={() => setShowChainFilter(false)} />
+                <div className="fixed inset-0 z-40" onClick={() => setShowChainFilter(false)} />
                 <div
-                  className="absolute z-30 left-0 mt-1 w-44 max-h-60 overflow-y-auto rounded-xl shadow-2xl"
+                  className="absolute z-50 left-0 mt-1 w-44 max-h-60 overflow-y-auto rounded-xl shadow-2xl"
                   style={{ background: '#141414', border: '1px solid var(--border)' }}
                 >
                   {chains.map((c) => (
