@@ -7,6 +7,7 @@ import { DexView } from './components/DexView'
 import { QuestsView } from './components/QuestsView'
 import { AdminPanel } from './components/AdminPanel'
 import { TradeView } from './components/TradeView'
+import { NetworkToggle } from './components/NetworkToggle'
 import { useQuestStore } from './hooks/useQuestStore'
 import { useTokenStore } from './hooks/useTokenStore'
 
@@ -60,6 +61,12 @@ export default function App() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            <div className="hidden xs:block">
+              <NetworkToggle />
+            </div>
+            <div className="xs:hidden">
+              <NetworkToggle compact />
+            </div>
             <ConnectKitButton />
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useAccount, useSwitchChain } from 'wagmi'
 import { ConnectKitButton } from 'connectkit'
 import { AppKit, BridgeChain } from '@circle-fin/app-kit'
@@ -22,24 +22,16 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useClickOutside } from '../hooks/useClickOutside'
-import { SUPPORTED_CHAINS, getTokensForChain, Token } from '../data/tokens'
+import { useNetworkStore } from '../hooks/useNetworkStore'
+import { SUPPORTED_CHAINS, getChainsForMode, getTokensForChain, Token } from '../data/tokens'
 import { ChainIcon, TokenIcon } from './Icons'
 
 const kit = new AppKit()
 
-const CHAIN_ID_MAP: Record<string, number> = {
-  Arc_Testnet: 5042002,
-  Ethereum: 1,
-  Base: 8453,
-  Arbitrum: 42161,
-  Optimism: 10,
-  Polygon: 137,
-  Avalanche: 43114,
-}
-
-// CCTP supported chain IDs in Circle SDK
+// CCTP supported chain IDs in Circle SDK (Mainnets + Testnets)
 const CCTP_CHAINS = new Set([
-  'Arc_Testnet',
+  // Mainnets
+  'Arc',
   'Ethereum',
   'Base',
   'Arbitrum',
@@ -47,6 +39,15 @@ const CCTP_CHAINS = new Set([
   'Polygon',
   'Avalanche',
   'Solana',
+  // Testnets
+  'Arc_Testnet',
+  'Ethereum_Sepolia',
+  'Base_Sepolia',
+  'Arbitrum_Sepolia',
+  'Optimism_Sepolia',
+  'Polygon_Amoy',
+  'Avalanche_Fuji',
+  'Solana_Devnet',
 ])
 
 type BridgeState = 'idle' | 'bridging' | 'success' | 'error'
@@ -62,9 +63,11 @@ interface BridgeStep {
 export function BridgeView() {
   const { address, connector, isConnected, chainId: walletChainId } = useAccount()
   const { switchChainAsync } = useSwitchChain()
+  const networkMode = useNetworkStore((s) => s.networkMode)
+  const availableChains = getChainsForMode(networkMode)
 
-  const [fromChain, setFromChain] = useState('Arc_Testnet')
-  const [toChain, setToChain] = useState('Base')
+  const [fromChain, setFromChain] = useState(() => (networkMode === 'mainnet' ? 'Arc' : 'Arc_Testnet'))
+  const [toChain, setToChain] = useState(() => (networkMode === 'mainnet' ? 'Base' : 'Base_Sepolia'))
 
   // Selected tokens for each chain
   const fromTokens = useMemo(() => getTokensForChain(fromChain), [fromChain])
@@ -137,7 +140,7 @@ export function BridgeView() {
   const fromValueUsd = !isNaN(parsedAmount) && parsedAmount > 0 ? (parsedAmount * (fromToken.price ?? 1.0)).toFixed(2) : '0.00'
 
   // Chain switcher handler
-  const handleSelectFromChain = (chainId: string) => {
+  const handleSelectFromChain = useCallback((chainId: string) => {
     setFromChain(chainId)
     setShowFromChainPicker(false)
     setSearchFromChain('')
@@ -147,9 +150,9 @@ export function BridgeView() {
     if (!hasSame) {
       setFromTokenSymbol(newTokens[0]?.symbol ?? 'USDC')
     }
-  }
+  }, [fromTokenSymbol])
 
-  const handleSelectToChain = (chainId: string) => {
+  const handleSelectToChain = useCallback((chainId: string) => {
     setToChain(chainId)
     setShowToChainPicker(false)
     setSearchToChain('')
@@ -161,7 +164,21 @@ export function BridgeView() {
     } else {
       setToTokenSymbol(newTokens[0]?.symbol ?? 'USDC')
     }
-  }
+  }, [fromToken.symbol])
+
+  // Sync chains when networkMode changes (Mainnet <-> Testnet)
+  useEffect(() => {
+    const isFromValid = availableChains.some((c) => c.id === fromChain)
+    const isToValid = availableChains.some((c) => c.id === toChain)
+    if (!isFromValid || !isToValid) {
+      const newFrom = isFromValid ? fromChain : (availableChains[0]?.id || (networkMode === 'mainnet' ? 'Arc' : 'Arc_Testnet'))
+      const newTo = (isToValid && toChain !== newFrom)
+        ? toChain
+        : (availableChains.find((c) => c.id !== newFrom)?.id || availableChains[1]?.id || newFrom)
+      handleSelectFromChain(newFrom)
+      handleSelectToChain(newTo)
+    }
+  }, [networkMode, availableChains, fromChain, toChain, handleSelectFromChain, handleSelectToChain])
 
   // Quick swap from & to chains/tokens
   const handleFlipRoute = () => {
@@ -214,7 +231,7 @@ export function BridgeView() {
       if (!connector) throw new Error('Wallet not connected')
 
       // Switch chain if on EVM with mapped chain ID
-      const targetChainId = CHAIN_ID_MAP[fromChain]
+      const targetChainId = fromChainInfo?.chainId
       if (targetChainId && walletChainId !== targetChainId) {
         try {
           await switchChainAsync({ chainId: targetChainId })
@@ -339,7 +356,7 @@ export function BridgeView() {
           Bridge Any Token & Coin
         </h1>
         <p className="text-xs sm:text-sm mt-1 max-w-lg" style={{ color: 'var(--muted)' }}>
-          Move any native coin or ecosystem token across 20+ chains. Powered by Circle CCTP v2 + LiFi Omnichain Routing.
+          Move any native coin or ecosystem token across {availableChains.length} chains. Powered by Circle CCTP v2 + LiFi Omnichain Routing.
         </p>
       </div>
 
@@ -395,7 +412,7 @@ export function BridgeView() {
                       />
                     </div>
                     <div className="max-h-56 overflow-y-auto">
-                      {SUPPORTED_CHAINS
+                      {availableChains
                         .filter((c) => c.name.toLowerCase().includes(searchFromChain.toLowerCase()) || c.shortName.toLowerCase().includes(searchFromChain.toLowerCase()))
                         .map((c) => (
                           <button
@@ -572,7 +589,7 @@ export function BridgeView() {
                       />
                     </div>
                     <div className="max-h-56 overflow-y-auto">
-                      {SUPPORTED_CHAINS
+                      {availableChains
                         .filter((c) => c.id !== fromChain)
                         .filter((c) => c.name.toLowerCase().includes(searchToChain.toLowerCase()) || c.shortName.toLowerCase().includes(searchToChain.toLowerCase()))
                         .map((c) => (

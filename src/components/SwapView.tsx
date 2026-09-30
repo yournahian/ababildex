@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAccount, useSwitchChain } from 'wagmi'
 import { ConnectKitButton } from 'connectkit'
 import { AppKit, SwapChain } from '@circle-fin/app-kit'
@@ -7,20 +7,11 @@ import type { EIP1193Provider } from 'viem'
 import { ArrowUpDown, ChevronDown, Loader2, CheckCircle2, AlertCircle, Info, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { useClickOutside } from '../hooks/useClickOutside'
-import { SUPPORTED_CHAINS, getTokensForChain, type Token } from '../data/tokens'
+import { useNetworkStore } from '../hooks/useNetworkStore'
+import { SUPPORTED_CHAINS, getChainsForMode, getTokensForChain, type Token } from '../data/tokens'
 import { ChainIcon, TokenIcon } from './Icons'
 
 const kit = new AppKit()
-
-const CHAIN_ID_MAP: Record<string, number> = {
-  Arc_Testnet: 5042002,
-  Ethereum: 1,
-  Base: 8453,
-  Arbitrum: 42161,
-  Optimism: 10,
-  Polygon: 137,
-  Avalanche: 43114,
-}
 
 type SwapState = 'idle' | 'estimating' | 'reviewing' | 'swapping' | 'success' | 'error'
 
@@ -32,8 +23,10 @@ interface Estimate {
 export function SwapView() {
   const { address, connector, isConnected, chainId: walletChainId } = useAccount()
   const { switchChainAsync } = useSwitchChain()
+  const networkMode = useNetworkStore((s) => s.networkMode)
+  const availableChains = getChainsForMode(networkMode)
 
-  const [fromChain, setFromChain] = useState('Arc_Testnet')
+  const [fromChain, setFromChain] = useState(() => (networkMode === 'mainnet' ? 'Arc' : 'Arc_Testnet'))
   const [tokenIn, setTokenIn] = useState('USDC')
   const [tokenOut, setTokenOut] = useState('USDT')
   const [tokenSearchIn, setTokenSearchIn] = useState('')
@@ -47,9 +40,7 @@ export function SwapView() {
   const [showTokenInPicker, setShowTokenInPicker] = useState(false)
   const [showTokenOutPicker, setShowTokenOutPicker] = useState(false)
 
-  const chainTokens = getTokensForChain(fromChain)
-
-  const handleSelectChain = (cId: string) => {
+  const handleSelectChain = useCallback((cId: string) => {
     setFromChain(cId)
     setShowFromChainPicker(false)
     setEstimate(null)
@@ -60,7 +51,17 @@ export function SwapView() {
     if (!tokens.some((t) => t.symbol === tokenOut)) {
       setTokenOut(tokens[1]?.symbol || tokens[0]?.symbol || 'USDT')
     }
-  }
+  }, [tokenIn, tokenOut])
+
+  // Sync chain when network mode changes (Mainnet <-> Testnet)
+  useEffect(() => {
+    if (!availableChains.some((c) => c.id === fromChain)) {
+      const defaultChain = availableChains[0]?.id || (networkMode === 'mainnet' ? 'Arc' : 'Arc_Testnet')
+      handleSelectChain(defaultChain)
+    }
+  }, [networkMode, availableChains, fromChain, handleSelectChain])
+
+  const chainTokens = getTokensForChain(fromChain)
 
   const fromChainPickerRef = useClickOutside<HTMLDivElement>(() => setShowFromChainPicker(false), showFromChainPicker)
   const tokenInPickerRef = useClickOutside<HTMLDivElement>(() => setShowTokenInPicker(false), showTokenInPicker)
@@ -73,7 +74,8 @@ export function SwapView() {
 
   const getAdapter = useCallback(async () => {
     if (!connector) throw new Error('Wallet not connected')
-    const targetChainId = CHAIN_ID_MAP[fromChain]
+    const targetChain = SUPPORTED_CHAINS.find((c) => c.id === fromChain)
+    const targetChainId = targetChain?.chainId
     if (targetChainId && walletChainId !== targetChainId) {
       await switchChainAsync({ chainId: targetChainId })
     }
@@ -166,7 +168,7 @@ export function SwapView() {
       <div className="mb-6">
         <h1 className="display text-2xl font-bold" style={{ color: 'var(--ink)' }}>Swap</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-          Swap tokens across 18+ blockchains. Powered by Circle App Kit + LiFi.
+          Swap tokens across {availableChains.length} blockchains. Powered by Circle App Kit + LiFi.
         </p>
       </div>
 
@@ -196,7 +198,7 @@ export function SwapView() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowFromChainPicker(false)} />
               <div className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto rounded-xl overflow-hidden shadow-2xl" style={{ background: '#141414', border: '1px solid var(--border)' }}>
-                {SUPPORTED_CHAINS.map((c) => (
+                {availableChains.map((c) => (
                   <button
                     key={c.id}
                     onClick={() => handleSelectChain(c.id)}

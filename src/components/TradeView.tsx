@@ -26,9 +26,10 @@ import {
   Globe,
   Search,
 } from 'lucide-react'
-import { DEFAULT_TOKEN_LIST, SUPPORTED_CHAINS, getTokensForChain, type ChainInfo } from '../data/tokens'
+import { DEFAULT_TOKEN_LIST, SUPPORTED_CHAINS, getChainsForMode, getTokensForChain, type ChainInfo } from '../data/tokens'
 import { TokenIcon, ChainIcon } from './Icons'
 import { useClickOutside } from '../hooks/useClickOutside'
+import { useNetworkStore } from '../hooks/useNetworkStore'
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types
@@ -431,12 +432,14 @@ function PairSelector({
 function ChainSelector({
   selected,
   onSelect,
+  chains,
   isOpen,
   onToggle,
   onClose,
 }: {
   selected: ChainInfo
   onSelect: (c: ChainInfo) => void
+  chains: ChainInfo[]
   isOpen: boolean
   onToggle: () => void
   onClose: () => void
@@ -444,7 +447,7 @@ function ChainSelector({
   const [search, setSearch] = useState('')
   const ref = useClickOutside<HTMLDivElement>(onClose, isOpen)
 
-  const filteredChains = SUPPORTED_CHAINS.filter(
+  const filteredChains = chains.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.shortName.toLowerCase().includes(search.toLowerCase()) ||
@@ -1069,9 +1072,11 @@ function StatItem({ label, value }: { label: string; value: string }) {
 // ──────────────────────────────────────────────────────────────────────────────
 export function TradeView() {
   const { isConnected } = useAccount()
+  const networkMode = useNetworkStore((s) => s.networkMode)
+  const availableChains = getChainsForMode(networkMode)
 
-  // Chain state — default to Arc Testnet
-  const defaultChain = SUPPORTED_CHAINS[0]
+  // Chain state — default to active mode's first chain
+  const defaultChain = availableChains[0] || (networkMode === 'mainnet' ? SUPPORTED_CHAINS[0] : SUPPORTED_CHAINS[20])
   const [chain, setChainState] = useState<ChainInfo>(defaultChain)
 
   // Pair state — driven by chain
@@ -1095,6 +1100,16 @@ export function TradeView() {
     setActiveMenu(null)
   }, [])
 
+  // Sync chain when networkMode toggles (Mainnet <-> Testnet)
+  useEffect(() => {
+    if (!availableChains.some((c) => c.id === chain.id)) {
+      const newChain = availableChains[0]
+      if (newChain) {
+        setChain(newChain)
+      }
+    }
+  }, [networkMode, availableChains, chain.id, setChain])
+
   const setPair = useCallback((p: TradingPair) => {
     setPairState(p)
     setLivePrice(p.basePrice)
@@ -1112,6 +1127,7 @@ export function TradeView() {
           <ChainSelector
             selected={chain}
             onSelect={setChain}
+            chains={availableChains}
             isOpen={activeMenu === 'chain'}
             onToggle={() => setActiveMenu((m) => (m === 'chain' ? null : 'chain'))}
             onClose={() => setActiveMenu(null)}

@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { ConnectKitButton } from 'connectkit'
 import { Droplets, TrendingUp, Plus, Search, ExternalLink, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { useClickOutside } from '../hooks/useClickOutside'
-import { Token, SUPPORTED_CHAINS, getTokensForChain } from '../data/tokens'
+import { useNetworkStore } from '../hooks/useNetworkStore'
+import { Token, SUPPORTED_CHAINS, getChainsForMode, getTokensForChain } from '../data/tokens'
 import { ChainIcon, TokenIcon } from './Icons'
 
 interface Pool {
@@ -19,7 +20,7 @@ interface Pool {
   chain: string
 }
 
-const DEMO_POOLS: Pool[] = [
+const MAINNET_POOLS: Pool[] = [
   { id: 'p1', token0: 'USDC', token1: 'USDT', color0: '#2775CA', color1: '#26A17B', tvl: '4.2M', apr: '12.4%', volume24h: '840K', chain: 'Arc' },
   { id: 'p2', token0: 'USDC', token1: 'WETH', color0: '#2775CA', color1: '#627EEA', tvl: '8.7M', apr: '18.2%', volume24h: '1.4M', chain: 'Ethereum' },
   { id: 'p3', token0: 'USDC', token1: 'WBTC', color0: '#2775CA', color1: '#F7931A', tvl: '12.1M', apr: '9.8%', volume24h: '2.1M', chain: 'Base' },
@@ -28,8 +29,21 @@ const DEMO_POOLS: Pool[] = [
   { id: 'p6', token0: 'SOL', token1: 'USDC', color0: '#9945FF', color1: '#2775CA', tvl: '18.5M', apr: '24.2%', volume24h: '4.8M', chain: 'Solana' },
   { id: 'p7', token0: 'POL', token1: 'USDT', color0: '#8247E5', color1: '#26A17B', tvl: '3.6M', apr: '14.8%', volume24h: '710K', chain: 'Polygon' },
   { id: 'p8', token0: 'AVAX', token1: 'USDC', color0: '#E84142', color1: '#2775CA', tvl: '5.9M', apr: '16.5%', volume24h: '1.1M', chain: 'Avalanche' },
-  { id: 'p9', token0: 'BNB', token1: 'USDT', color0: '#F3BA2F', color1: '#26A17B', tvl: '9.4M', apr: '13.2%', volume24h: '1.9M', chain: 'BNB Chain' },
+  { id: 'p9', token0: 'BNB', token1: 'USDT', color0: '#F3BA2F', color1: '#26A17B', tvl: '9.4M', apr: '13.2%', volume24h: '1.9M', chain: 'BSC' },
   { id: 'p10', token0: 'SUI', token1: 'USDC', color0: '#4DA2FF', color1: '#2775CA', tvl: '4.8M', apr: '28.4%', volume24h: '1.3M', chain: 'Sui' },
+]
+
+const TESTNET_POOLS: Pool[] = [
+  { id: 'tp1', token0: 'USDC', token1: 'NATIVE', color0: '#2775CA', color1: '#5FFBF1', tvl: '1.2M', apr: '16.4%', volume24h: '320K', chain: 'Arc Testnet' },
+  { id: 'tp2', token0: 'USDC', token1: 'WETH', color0: '#2775CA', color1: '#627EEA', tvl: '2.5M', apr: '21.2%', volume24h: '610K', chain: 'Ethereum Sepolia' },
+  { id: 'tp3', token0: 'USDC', token1: 'USDT', color0: '#2775CA', color1: '#26A17B', tvl: '3.8M', apr: '14.5%', volume24h: '940K', chain: 'Base Sepolia' },
+  { id: 'tp4', token0: 'ARB', token1: 'USDC', color0: '#28A0F0', color1: '#2775CA', tvl: '1.9M', apr: '18.6%', volume24h: '430K', chain: 'Arbitrum Sepolia' },
+  { id: 'tp5', token0: 'OP', token1: 'USDC', color0: '#FF0420', color1: '#2775CA', tvl: '1.4M', apr: '19.1%', volume24h: '280K', chain: 'OP Sepolia' },
+  { id: 'tp6', token0: 'SOL', token1: 'USDC', color0: '#9945FF', color1: '#2775CA', tvl: '4.1M', apr: '26.8%', volume24h: '1.1M', chain: 'Solana Devnet' },
+  { id: 'tp7', token0: 'POL', token1: 'USDC', color0: '#8247E5', color1: '#2775CA', tvl: '1.1M', apr: '17.2%', volume24h: '250K', chain: 'Polygon Amoy' },
+  { id: 'tp8', token0: 'AVAX', token1: 'USDC', color0: '#E84142', color1: '#2775CA', tvl: '2.0M', apr: '20.5%', volume24h: '510K', chain: 'Avalanche Fuji' },
+  { id: 'tp9', token0: 'tBNB', token1: 'USDC', color0: '#F3BA2F', color1: '#2775CA', tvl: '2.6M', apr: '15.8%', volume24h: '670K', chain: 'BNB Testnet' },
+  { id: 'tp10', token0: 'SUI', token1: 'USDC', color0: '#4DA2FF', color1: '#2775CA', tvl: '1.8M', apr: '31.4%', volume24h: '490K', chain: 'Sui Testnet' },
 ]
 
 type DexTab = 'pools' | 'tokens'
@@ -40,6 +54,8 @@ interface DexViewProps {
 
 export function DexView({ tokens }: DexViewProps) {
   const { isConnected, address } = useAccount()
+  const networkMode = useNetworkStore((s) => s.networkMode)
+  const availableChains = getChainsForMode(networkMode)
   const [tab, setDexTab] = useState<DexTab>('pools')
   const [search, setSearch] = useState('')
   const [showLiquidityModal, setShowLiquidityModal] = useState(false)
@@ -50,6 +66,11 @@ export function DexView({ tokens }: DexViewProps) {
   const [showTokenBPicker, setShowTokenBPicker] = useState(false)
   const [chainFilter, setChainFilter] = useState('All')
   const [showChainFilter, setShowChainFilter] = useState(false)
+
+  // Reset chain filter when networkMode changes
+  useEffect(() => {
+    setChainFilter('All')
+  }, [networkMode])
 
   const chainFilterRef = useClickOutside<HTMLDivElement>(() => setShowChainFilter(false), showChainFilter)
   const tokenAPickerRef = useClickOutside<HTMLDivElement>(() => setShowTokenAPicker(false), showTokenAPicker)
@@ -70,13 +91,15 @@ export function DexView({ tokens }: DexViewProps) {
     setShowLiquidityModal(true)
   }
 
+  const activePools = networkMode === 'mainnet' ? MAINNET_POOLS : TESTNET_POOLS
+
   const listedTokens = tokens.filter((t) => t.listed)
-  const filteredPools = DEMO_POOLS.filter((p) => {
+  const filteredPools = activePools.filter((p) => {
     const matchesSearch =
       p.token0.toLowerCase().includes(search.toLowerCase()) ||
       p.token1.toLowerCase().includes(search.toLowerCase()) ||
       p.chain.toLowerCase().includes(search.toLowerCase())
-    const matchesChain = chainFilter === 'All' || p.chain.toLowerCase() === chainFilter.toLowerCase()
+    const matchesChain = chainFilter === 'All' || p.chain.toLowerCase().includes(chainFilter.toLowerCase())
     return matchesSearch && matchesChain
   })
   const filteredTokens = listedTokens.filter(
@@ -85,7 +108,7 @@ export function DexView({ tokens }: DexViewProps) {
       t.name.toLowerCase().includes(search.toLowerCase())
   )
 
-  const chains = ['All', ...SUPPORTED_CHAINS.map((c) => c.shortName)]
+  const chains = ['All', ...availableChains.map((c) => c.shortName)]
 
   return (
     <div className="max-w-2xl mx-auto px-4 pb-10">

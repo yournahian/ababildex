@@ -60,10 +60,10 @@ interface ChainIconProps {
 export const ChainIcon: React.FC<ChainIconProps> = ({ chain, size = 18, className = '' }) => {
   const c = String(chain).toLowerCase()
 
-  if (c.includes('arc') || c === '5042002' || c === '5042') {
+  if (c.includes('arc') || c === '5042002' || c === '5042001' || c === '5042') {
     return <NetworkArc size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('eth') || c === '1' || c === '11155111') {
+  if (c.includes('eth') || c.includes('sepolia') || c === '1' || c === '11155111' || c === 'sep') {
     return <NetworkEthereum size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
   if (c.includes('base') || c === '8453' || c === '84532') {
@@ -75,49 +75,49 @@ export const ChainIcon: React.FC<ChainIconProps> = ({ chain, size = 18, classNam
   if (c.includes('op') || c.includes('optimism') || c === '10' || c === '11155420') {
     return <NetworkOptimism size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('poly') || c.includes('polygon') || c.includes('matic') || c === '137' || c === '80002') {
+  if (c.includes('poly') || c.includes('polygon') || c.includes('amoy') || c.includes('matic') || c === '137' || c === '80002') {
     return <NetworkPolygon size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('avax') || c.includes('avalanche') || c === '43114' || c === '43113') {
+  if (c.includes('avax') || c.includes('avalanche') || c.includes('fuji') || c === '43114' || c === '43113') {
     return <NetworkAvalanche size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('sol') || c === 'solana') {
+  if (c.includes('sol') || c.includes('devnet') || c === 'solana' || c === '101' || c === '103') {
     return <NetworkSolana size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('bsc') || c.includes('binance') || c.includes('bnb') || c === '56') {
+  if (c.includes('bsc') || c.includes('binance') || c.includes('bnb') || c === '56' || c === '97' || c.includes('tbnb')) {
     return <NetworkBinanceSmartChain size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('linea') || c === '59144') {
+  if (c.includes('linea') || c === '59144' || c === '59141') {
     return <NetworkLinea size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('scroll') || c === '534352') {
+  if (c.includes('scroll') || c === '534352' || c === '534351') {
     return <NetworkScroll size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('zksync') || c.includes('zk') || c === '324') {
+  if (c.includes('zksync') || c.includes('zk') || c === '324' || c === '300') {
     return <NetworkZksync size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('mantle') || c.includes('mnt') || c === '5000') {
+  if (c.includes('mantle') || c.includes('mnt') || c === '5000' || c === '5003') {
     return <NetworkMantle size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('blast') || c === '81457') {
+  if (c.includes('blast') || c === '81457' || c === '168587773') {
     return <NetworkBlast size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('celo') || c === '42220') {
+  if (c.includes('celo') || c.includes('alfajores') || c === '42220' || c === '44787') {
     return <NetworkCelo size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('sei') || c === '1329') {
+  if (c.includes('sei') || c === '1329' || c === '1328') {
     return <NetworkSeiNetwork size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('aptos') || c.includes('apt')) {
+  if (c.includes('aptos') || c.includes('apt') || c === '2' || c === '3') {
     return <NetworkAptos size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('sui')) {
+  if (c.includes('sui') || c === '784' || c === '785') {
     return <NetworkSui size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('sonic') || c.includes('fantom') || c.includes('ftm') || c === '146' || c === '250') {
+  if (c.includes('sonic') || c.includes('fantom') || c.includes('ftm') || c === '146' || c === '64165' || c === '250') {
     return <NetworkSonic size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
-  if (c.includes('near')) {
+  if (c.includes('near') || c === '397' || c === '398') {
     return <NetworkNearProtocol size={size} variant="branded" className={`shrink-0 rounded-full ${className}`} />
   }
 
