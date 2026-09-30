@@ -42,7 +42,7 @@ contract FeeTreasuryTest is Test {
     }
 
     function test_Constructor_RevertsZeroOwner() public {
-        vm.expectRevert(FeeTreasury.ZeroAddress.selector);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
         new FeeTreasury(address(usdc), address(0));
     }
 
@@ -226,8 +226,9 @@ contract FeeTreasuryTest is Test {
 
         assertEq(treasury.totalCollected(), amount);
 
+        uint256 bobBefore = usdc.balanceOf(bob);
         vm.prank(owner);
         treasury.withdraw(bob, amount);
-        assertEq(usdc.balanceOf(bob), amount);
+        assertEq(usdc.balanceOf(bob), bobBefore + amount);
     }
 }
